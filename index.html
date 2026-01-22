@@ -102,6 +102,11 @@
             color: white;
         }
         
+        .btn-settings {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            color: #2d3436;
+        }
+        
         .category-bar {
             background: rgba(255, 255, 255, 0.95);
             padding: 15px 30px;
@@ -482,6 +487,7 @@
         
         .notification.success { border-right: 5px solid #2ecc71; }
         .notification.error { border-right: 5px solid #e74c3c; }
+        .notification.info { border-right: 5px solid #3498db; }
         
         .empty-state {
             text-align: center;
@@ -501,7 +507,7 @@
             font-size: 1.2rem;
         }
         
-        .firebase-status {
+        .sync-status {
             position: fixed;
             bottom: 20px;
             left: 20px;
@@ -524,9 +530,59 @@
             animation: pulse-dot 2s infinite;
         }
         
+        .status-dot.syncing {
+            background: #f39c12;
+        }
+        
+        .status-dot.error {
+            background: #e74c3c;
+        }
+        
         @keyframes pulse-dot {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
+        }
+        
+        .setup-banner {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            padding: 15px 30px;
+            text-align: center;
+            font-weight: 600;
+            color: #2d3436;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-right: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box h4 {
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
+        
+        .info-box p {
+            color: #424242;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .code-box {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            direction: ltr;
+            text-align: left;
         }
         
         @media (max-width: 768px) {
@@ -540,7 +596,15 @@
 </head>
 <body>
 
-    <div class="loading" id="loading">⏳ מתחבר ל-Firebase...</div>
+    <div class="loading" id="loading">⏳ טוען נתונים...</div>
+
+    <div id="setupBanner" class="setup-banner" style="display:none;">
+        <span>⚠️ יש להגדיר חיבור ל-Google Sheets</span>
+        <button class="btn btn-settings" onclick="openSettingsModal()" style="padding:8px 16px;">
+            <span>⚙️</span>
+            <span>הגדרות</span>
+        </button>
+    </div>
 
     <div id="mainApp" style="display:none;">
         <div class="top-bar">
@@ -563,6 +627,14 @@
                 </div>
             </div>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-sync" onclick="syncWithSheets()">
+                    <span>🔄</span>
+                    <span>סנכרון</span>
+                </button>
+                <button class="btn btn-settings" onclick="openSettingsModal()">
+                    <span>⚙️</span>
+                    <span>הגדרות</span>
+                </button>
                 <button class="btn btn-category" onclick="openCategoryModal()">
                     <span>📁</span>
                     <span>קטגוריה</span>
@@ -590,9 +662,60 @@
         <div class="board-container" id="board"></div>
     </div>
 
-    <div class="firebase-status">
-        <div class="status-dot"></div>
-        <span>מחובר ל-Firebase</span>
+    <div class="sync-status">
+        <div class="status-dot" id="syncDot"></div>
+        <span id="syncText">מצב: לוקלי</span>
+    </div>
+
+    <!-- מודאל הגדרות -->
+    <div id="modalSettings" class="modal-bg" onclick="closeIfClickOutside(event, 'modalSettings')">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span>⚙️</span>
+                <span>הגדרות Google Sheets</span>
+            </div>
+            
+            <div class="info-box">
+                <h4>📝 הוראות הגדרה מהירה:</h4>
+                <p>
+                    1. צור Google Sheet חדש<br>
+                    2. כלים → Apps Script<br>
+                    3. העתק את הקוד מהקישור למטה<br>
+                    4. פרסם → Deploy → Web App<br>
+                    5. העתק את ה-URL לכאן
+                </p>
+            </div>
+
+            <div class="form-row">
+                <label>Google Sheets Web App URL:</label>
+                <input type="text" id="inpSheetsUrl" placeholder="https://script.google.com/macros/s/...">
+            </div>
+
+            <div class="info-box">
+                <h4>🔗 קוד Apps Script:</h4>
+                <p>
+                    <a href="https://github.com/task-manager-apps-script" target="_blank" style="color:#1976d2; text-decoration:underline;">
+                        לחץ כאן לקוד המוכן
+                    </a>
+                </p>
+                <div class="code-box">
+function doGet() { return ContentService.createTextOutput("OK"); }
+function doPost(e) { /* קוד מלא בגיטהאב */ }
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="saveSettings()">
+                    <span>💾</span>
+                    <span>שמור הגדרות</span>
+                </button>
+                <button class="btn btn-secondary" onclick="testConnection()">
+                    <span>🧪</span>
+                    <span>בדוק חיבור</span>
+                </button>
+                <button class="btn btn-secondary" onclick="closeAllModals()">סגור</button>
+            </div>
+        </div>
     </div>
 
     <!-- מודאל קטגוריה -->
@@ -684,529 +807,4 @@
             </div>
 
             <div class="form-row">
-                <label>קישור לקובץ/תיקייה:</label>
-                <input type="text" id="inpLink" placeholder="https://...">
-            </div>
-
-            <div class="form-row">
-                <label>הערות:</label>
-                <textarea id="inpNotes" rows="4" placeholder="הוסף פרטים נוספים..."></textarea>
-            </div>
-
-            <div class="btn-row">
-                <button class="btn btn-primary" onclick="saveTask()">
-                    <span>💾</span>
-                    <span>שמור</span>
-                </button>
-                <button class="btn btn-danger" onclick="deleteTask()">
-                    <span>🗑️</span>
-                    <span>מחק</span>
-                </button>
-                <button class="btn btn-secondary" onclick="closeAllModals()">סגור</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="notification" id="notification"></div>
-
-<script>
-    // ========== Storage System (LocalStorage Based) ==========
-    // Firebase configuration removed to prevent deployment issues
-    // System uses localStorage for data persistence
-    
-    let database = null; // No Firebase - using localStorage only
-
-    // ========== Global Variables ==========
-    const STORAGE_KEY = 'shared_task_system_v1';
-    let categories = [];
-    let projects = {};
-    let tasks = {};
-    let activeCategory = null;
-    let activeProjId = null;
-    let activeTaskIdx = null;
-    let currentFilter = 'all';
-
-    // ========== Default Data ==========
-    const defaultData = {
-        categories: [
-            { id: 'cat_tech', title: 'טכנולוגיה', icon: '💻' },
-            { id: 'cat_security', title: 'אבטחה', icon: '🔒' },
-            { id: 'cat_marketing', title: 'שיווק', icon: '📢' }
-        ],
-        projects: {
-            'cat_tech': [
-                { id: 'p_caf', title: 'CAF', color: '#e74c3c' },
-                { id: 'p_kiryat', title: 'קריית גת', color: '#e67e22' }
-            ],
-            'cat_security': [
-                { id: 'p_hod', title: 'הוד השרון אכיפה', color: '#3498db' }
-            ],
-            'cat_marketing': [
-                { id: 'p_achihud', title: 'חניון אחיהוד', color: '#27ae60' },
-                { id: 'p_akko', title: 'חניון עכו', color: '#8e44ad' }
-            ]
-        },
-        tasks: {}
-    };
-
-    // ========== Initialize ==========
-    async function init() {
-        try {
-            // Using localStorage for data persistence
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                const data = JSON.parse(stored);
-                categories = data.categories || defaultData.categories;
-                projects = data.projects || defaultData.projects;
-                tasks = data.tasks || defaultData.tasks;
-            } else {
-                categories = defaultData.categories;
-                projects = defaultData.projects;
-                tasks = defaultData.tasks;
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
-            }
-            
-            activeCategory = categories[0]?.id;
-            
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            
-            renderCategories();
-            render();
-        } catch (error) {
-            console.error('Init error:', error);
-            showNotification('שגיאה בטעינה, משתמש במצב לוקלי', 'error');
-            
-            // Fallback to localStorage
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                const data = JSON.parse(stored);
-                categories = data.categories || defaultData.categories;
-                projects = data.projects || defaultData.projects;
-                tasks = data.tasks || defaultData.tasks;
-            } else {
-                categories = defaultData.categories;
-                projects = defaultData.projects;
-                tasks = defaultData.tasks;
-            }
-            
-            activeCategory = categories[0]?.id;
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            renderCategories();
-            render();
-        }
-    }
-
-    // ========== Save Data ==========
-    async function saveData() {
-        try {
-            const data = { categories, projects, tasks };
-            
-            if (database) {
-                await database.ref('taskSystem').set(data);
-            } else {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            }
-            
-            render();
-        } catch (error) {
-            console.error('Save error:', error);
-            // Fallback to localStorage
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({ categories, projects, tasks }));
-            showNotification('נשמר מקומי', 'success');
-            render();
-        }
-    }
-
-    // ========== Render Categories ==========
-    function renderCategories() {
-        const bar = document.getElementById('categoryBar');
-        bar.innerHTML = '';
-        
-        categories.forEach(cat => {
-            const tab = document.createElement('div');
-            tab.className = 'category-tab' + (cat.id === activeCategory ? ' active' : '');
-            
-            const deleteBtn = document.createElement('span');
-            deleteBtn.className = 'delete-cat';
-            deleteBtn.innerHTML = '×';
-            deleteBtn.style.display = categories.length > 1 ? 'inline' : 'none';
-            deleteBtn.onclick = (e) => {
-                e.stopPropagation();
-                deleteCategory(cat.id);
-            };
-            
-            const icon = document.createElement('span');
-            icon.textContent = cat.icon;
-            
-            const title = document.createElement('span');
-            title.textContent = cat.title;
-            
-            tab.appendChild(icon);
-            tab.appendChild(title);
-            tab.appendChild(deleteBtn);
-            
-            tab.onclick = () => {
-                activeCategory = cat.id;
-                renderCategories();
-                render();
-            };
-            
-            bar.appendChild(tab);
-        });
-    }
-
-    // ========== Category Functions ==========
-    function openCategoryModal() {
-        document.getElementById('inpCatTitle').value = '';
-        document.getElementById('inpCatIcon').value = '📁';
-        document.getElementById('modalCategory').style.display = 'flex';
-    }
-
-    function createCategory() {
-        const title = document.getElementById('inpCatTitle').value.trim();
-        const icon = document.getElementById('inpCatIcon').value.trim() || '📁';
-        
-        if (!title) {
-            showNotification('חובה לתת שם לקטגוריה', 'error');
-            return;
-        }
-
-        const newId = 'cat_' + Date.now();
-        categories.push({ id: newId, title, icon });
-        projects[newId] = [];
-        
-        activeCategory = newId;
-        saveData();
-        renderCategories();
-        closeAllModals();
-        showNotification('הקטגוריה נוצרה בהצלחה! 🎉', 'success');
-    }
-
-    function deleteCategory(catId) {
-        if (categories.length <= 1) {
-            showNotification('חייבת להישאר לפחות קטגוריה אחת', 'error');
-            return;
-        }
-        
-        if (confirm('⚠️ למחוק את הקטגוריה ואת כל הפרויקטים והמשימות שבה?')) {
-            categories = categories.filter(c => c.id !== catId);
-            
-            if (projects[catId]) {
-                projects[catId].forEach(proj => {
-                    delete tasks[proj.id];
-                });
-                delete projects[catId];
-            }
-            
-            activeCategory = categories[0].id;
-            saveData();
-            renderCategories();
-            showNotification('הקטגוריה נמחקה', 'success');
-        }
-    }
-
-    // ========== Project Functions ==========
-    function openProjectModal() {
-        if (!activeCategory) {
-            showNotification('יש ליצור קטגוריה קודם', 'error');
-            return;
-        }
-        document.getElementById('inpProjTitle').value = '';
-        document.getElementById('inpProjColor').value = '#667eea';
-        document.getElementById('modalProject').style.display = 'flex';
-    }
-
-    function createProject() {
-        const title = document.getElementById('inpProjTitle').value.trim();
-        const color = document.getElementById('inpProjColor').value;
-        
-        if (!title) {
-            showNotification('חובה לתת שם לפרויקט', 'error');
-            return;
-        }
-
-        const newId = 'proj_' + Date.now();
-        if (!projects[activeCategory]) projects[activeCategory] = [];
-        projects[activeCategory].push({ id: newId, title, color });
-        
-        saveData();
-        closeAllModals();
-        showNotification('הפרויקט נוצר בהצלחה! 🎉', 'success');
-    }
-
-    function deleteProject(projId) {
-        if (confirm('⚠️ למחוק את הפרויקט ואת כל המשימות שבו?')) {
-            Object.keys(projects).forEach(catId => {
-                projects[catId] = projects[catId].filter(p => p.id !== projId);
-            });
-            delete tasks[projId];
-            saveData();
-            showNotification('הפרויקט נמחק', 'success');
-        }
-    }
-
-    // ========== Task Functions ==========
-    function openTaskModal(projId, taskIdx) {
-        activeProjId = projId;
-        activeTaskIdx = taskIdx;
-        
-        if (taskIdx === -1) {
-            document.getElementById('taskModalTitle').innerText = 'משימה חדשה';
-            document.getElementById('taskModalIcon').innerText = '➕';
-            document.getElementById('inpTitle').value = '';
-            document.getElementById('inpStatus').value = 'todo';
-            document.getElementById('inpPriority').value = 'medium';
-            document.getElementById('inpDate').value = '';
-            document.getElementById('inpHours').value = '';
-            document.getElementById('inpLink').value = '';
-            document.getElementById('inpNotes').value = '';
-        } else {
-            const t = tasks[projId][taskIdx];
-            document.getElementById('taskModalTitle').innerText = 'עריכת משימה';
-            document.getElementById('taskModalIcon').innerText = '✏️';
-            document.getElementById('inpTitle').value = t.title;
-            document.getElementById('inpStatus').value = t.status;
-            document.getElementById('inpPriority').value = t.priority || 'medium';
-            document.getElementById('inpDate').value = t.date || '';
-            document.getElementById('inpHours').value = t.hours || '';
-            document.getElementById('inpLink').value = t.link || '';
-            document.getElementById('inpNotes').value = t.notes || '';
-        }
-
-        document.getElementById('modalTask').style.display = 'flex';
-    }
-
-    function saveTask() {
-        const title = document.getElementById('inpTitle').value.trim();
-        if (!title) {
-            showNotification('חובה להזין שם משימה', 'error');
-            return;
-        }
-
-        const taskObj = {
-            title,
-            status: document.getElementById('inpStatus').value,
-            priority: document.getElementById('inpPriority').value,
-            date: document.getElementById('inpDate').value,
-            hours: document.getElementById('inpHours').value,
-            link: document.getElementById('inpLink').value,
-            notes: document.getElementById('inpNotes').value,
-            updated: new Date().toISOString()
-        };
-
-        if (!tasks[activeProjId]) tasks[activeProjId] = [];
-
-        if (activeTaskIdx === -1) {
-            tasks[activeProjId].push(taskObj);
-            showNotification('המשימה נוספה בהצלחה! ✅', 'success');
-        } else {
-            tasks[activeProjId][activeTaskIdx] = taskObj;
-            showNotification('המשימה עודכנה בהצלחה! 💾', 'success');
-        }
-
-        saveData();
-        closeAllModals();
-    }
-
-    function deleteTask() {
-        if (activeTaskIdx > -1 && confirm('⚠️ למחוק את המשימה?')) {
-            tasks[activeProjId].splice(activeTaskIdx, 1);
-            saveData();
-            closeAllModals();
-            showNotification('המשימה נמחקה', 'success');
-        }
-    }
-
-    // ========== Filter Functions ==========
-    function toggleFilter(filter) {
-        currentFilter = filter;
-        document.querySelectorAll('.btn-filter').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        event.target.classList.add('active');
-        render();
-    }
-
-    function filterTasks() {
-        render();
-    }
-
-    // ========== Utility Functions ==========
-    function shadeColor(color, percent) {
-        let R = parseInt(color.substring(1,3),16);
-        let G = parseInt(color.substring(3,5),16);
-        let B = parseInt(color.substring(5,7),16);
-
-        R = parseInt(R * (100 + percent) / 100);
-        G = parseInt(G * (100 + percent) / 100);
-        B = parseInt(B * (100 + percent) / 100);
-
-        R = (R<255)?R:255;  
-        G = (G<255)?G:255;  
-        B = (B<255)?B:255;  
-
-        const RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16));
-        const GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16));
-        const BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16));
-
-        return "#"+RR+GG+BB;
-    }
-
-    // ========== Render Board ==========
-    function render() {
-        const board = document.getElementById('board');
-        board.innerHTML = '';
-        
-        let totalDone = 0;
-        let totalProgress = 0;
-        let overdue = 0;
-        const todayStr = new Date().toISOString().split('T')[0];
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-
-        const currentProjects = projects[activeCategory] || [];
-        
-        if (currentProjects.length === 0) {
-            board.innerHTML = `
-                <div class="empty-state" style="width:100%;">
-                    <div class="empty-state-icon">📂</div>
-                    <div>אין פרויקטים בקטגוריה זו</div>
-                    <button class="btn btn-new" onclick="openProjectModal()" style="margin-top:20px;">
-                        <span>➕</span>
-                        <span>צור פרויקט ראשון</span>
-                    </button>
-                </div>
-            `;
-            document.getElementById('countDone').innerText = '0';
-            document.getElementById('countProgress').innerText = '0';
-            document.getElementById('countOverdue').innerText = '0';
-            return;
-        }
-
-        currentProjects.forEach(proj => {
-            const col = document.createElement('div');
-            col.className = 'column';
-            col.style.setProperty('--col-color', proj.color);
-            
-            const darker = shadeColor(proj.color, -20);
-            col.style.setProperty('--col-color-dark', darker);
-            
-            let projTasks = tasks[proj.id] || [];
-            let visibleTasks = projTasks.filter(t => {
-                const matchesSearch = !searchTerm || 
-                    t.title.toLowerCase().includes(searchTerm) ||
-                    (t.notes && t.notes.toLowerCase().includes(searchTerm));
-                const matchesFilter = currentFilter === 'all' || t.status === currentFilter;
-                return matchesSearch && matchesFilter;
-            });
-            
-            const header = document.createElement('div');
-            header.className = 'col-header';
-            header.innerHTML = `
-                <div class="col-title">
-                    <span>${proj.title}</span>
-                    <span class="task-count">${visibleTasks.length}</span>
-                </div>
-                <span class="delete-col">×</span>
-            `;
-            header.querySelector('.delete-col').onclick = () => deleteProject(proj.id);
-            
-            const listDiv = document.createElement('div');
-            listDiv.className = 'task-list';
-            listDiv.id = `list_${proj.id}`;
-            
-            const addBtn = document.createElement('button');
-            addBtn.className = 'btn-add-task';
-            addBtn.innerHTML = '<span>➕</span><span>הוסף משימה</span>';
-            addBtn.onclick = () => openTaskModal(proj.id, -1);
-            
-            col.appendChild(header);
-            col.appendChild(listDiv);
-            col.appendChild(addBtn);
-            board.appendChild(col);
-            
-            if (visibleTasks.length === 0) {
-                listDiv.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📭</div>
-                        <div>אין משימות להצגה</div>
-                    </div>
-                `;
-            } else {
-                visibleTasks.forEach((t) => {
-                    const origIdx = projTasks.indexOf(t);
-                    
-                    if (t.status === 'done') totalDone++;
-                    if (t.status === 'inprogress') totalProgress++;
-                    if (t.date && t.date < todayStr && t.status !== 'done') overdue++;
-
-                    const taskEl = document.createElement('div');
-                    taskEl.className = `task-card status-${t.status}`;
-                    taskEl.onclick = () => openTaskModal(proj.id, origIdx);
-                    
-                    let dateHtml = '';
-                    if (t.date) {
-                        const isOverdue = t.date < todayStr && t.status !== 'done';
-                        dateHtml = `<span class="task-date ${isOverdue ? 'overdue' : ''}">📅 ${t.date.split('-').reverse().join('/')}</span>`;
-                    }
-                    
-                    let priorityHtml = '';
-                    if (t.priority) {
-                        priorityHtml = `<span class="task-priority priority-${t.priority}">
-                            ${t.priority === 'high' ? '🔴' : t.priority === 'medium' ? '🟡' : '🟢'}
-                        </span>`;
-                    }
-                    
-                    let linkHtml = '';
-                    if (t.link) {
-                        linkHtml = `<a href="${t.link}" target="_blank" onclick="event.stopPropagation()" style="text-decoration:none;">📎</a>`;
-                    }
-
-                    taskEl.innerHTML = `
-                        <div class="task-title">${t.title}</div>
-                        <div class="task-meta">
-                            <div>${dateHtml} ${priorityHtml}</div>
-                            <div class="task-actions">${linkHtml}</div>
-                        </div>
-                    `;
-                    listDiv.appendChild(taskEl);
-                });
-            }
-        });
-
-        document.getElementById('countDone').innerText = totalDone;
-        document.getElementById('countProgress').innerText = totalProgress;
-        document.getElementById('countOverdue').innerText = overdue;
-    }
-
-    // ========== Modal Functions ==========
-    function closeAllModals() {
-        document.getElementById('modalCategory').style.display = 'none';
-        document.getElementById('modalProject').style.display = 'none';
-        document.getElementById('modalTask').style.display = 'none';
-    }
-
-    function closeIfClickOutside(event, modalId) {
-        if (event.target.id === modalId) {
-            closeAllModals();
-        }
-    }
-
-    function showNotification(message, type) {
-        const notif = document.getElementById('notification');
-        notif.className = 'notification ' + type;
-        notif.innerText = message;
-        notif.style.display = 'block';
-        
-        setTimeout(() => {
-            notif.style.display = 'none';
-        }, 3000);
-    }
-
-    // ========== Start Application ==========
-    init();
-
-</script>
-</body>
-</html>
+                <label>קישור לקובץ/תיק
