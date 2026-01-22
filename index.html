@@ -3,808 +3,714 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מערכת ניהול משימות שיתופית PRO</title>
+    <title>מערכת משימות + ענן</title>
     <style>
+        /* --- עיצוב כללי --- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-color: #f0f2f5;
             min-height: 100vh;
             color: #333;
+            display: flex;
+            flex-direction: column;
         }
-        
+
+        /* --- סרגל עליון --- */
         .top-bar {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            padding: 20px 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            background: #ffffff;
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        
-        .app-title {
-            font-size: 1.8rem;
+
+        .app-logo {
+            font-size: 1.5rem;
             font-weight: 800;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
-        
-        .stats-container {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .stat-box {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 12px;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-        }
-        
-        .stat-box:hover { transform: translateY(-2px); }
-        
-        .stat-box.success {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-        
-        .stat-box.warning {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        }
-        
-        .stat-box.danger {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-        }
-        
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 0.95rem;
-            font-weight: 600;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-        }
-        
-        .btn-new {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .btn-category {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-        }
-        
-        .btn-sync {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            color: white;
-        }
-        
-        .btn-settings {
-            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-            color: #2d3436;
-        }
-        
-        .category-bar {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 15px 30px;
-            display: flex;
-            gap: 10px;
-            overflow-x: auto;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        
-        .category-tab {
-            padding: 12px 24px;
-            border-radius: 10px;
-            background: white;
-            border: 2px solid #e0e0e0;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .category-tab:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        
-        .category-tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-color: #667eea;
-        }
-        
-        .category-tab .delete-cat {
-            opacity: 0.6;
-            margin-right: 8px;
-            font-size: 1.2rem;
-        }
-        
-        .category-tab .delete-cat:hover {
-            opacity: 1;
-        }
-        
-        .filter-bar {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 15px 30px;
+
+        /* --- סטטיסטיקה --- */
+        .stats-row {
             display: flex;
             gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
-        
-        .search-box {
-            flex: 1;
-            min-width: 250px;
+
+        .stat-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        
-        .search-box input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            transition: all 0.3s;
-        }
-        
-        .search-box input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .btn-filter {
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
+        .bg-blue { background: #3498db; }
+        .bg-green { background: #2ecc71; }
+        .bg-red { background: #e74c3c; }
+
+        /* --- כפתורים --- */
+        .btn {
             padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
             font-size: 0.9rem;
         }
+        .btn:hover { transform: translateY(-2px); }
         
-        .btn-filter.active {
-            background: #667eea;
-            color: white;
-        }
-        
-        .board-container {
-            padding: 30px;
-            overflow-x: auto;
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
-            min-height: calc(100vh - 300px);
-        }
-        
-        .column {
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 15px;
-            min-width: 320px;
-            width: 320px;
-            max-height: 70vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            transition: all 0.3s;
-        }
-        
-        .column:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 50px rgba(0,0,0,0.15);
-        }
-        
-        .col-header {
-            padding: 20px;
-            border-radius: 15px 15px 0 0;
-            color: white;
-            font-weight: 700;
-            font-size: 1.1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(135deg, var(--col-color) 0%, var(--col-color-dark) 100%);
-        }
-        
-        .col-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .task-count {
-            background: rgba(255,255,255,0.3);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-        }
-        
-        .delete-col {
-            cursor: pointer;
-            opacity: 0.7;
-            font-size: 1.5rem;
-            transition: all 0.3s;
-        }
-        
-        .delete-col:hover {
-            opacity: 1;
-            transform: scale(1.2);
-        }
-        
-        .task-list {
-            overflow-y: auto;
-            flex-grow: 1;
-            padding: 15px;
-            min-height: 100px;
-        }
-        
-        .task-list::-webkit-scrollbar { width: 6px; }
-        .task-list::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-        .task-list::-webkit-scrollbar-thumb { background: #667eea; border-radius: 10px; }
-        
-        .task-card {
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-secondary { background: #ecf0f1; color: #333; }
+        .btn-cloud-save { background: #8e44ad; color: white; }
+        .btn-cloud-load { background: #2980b9; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-success { background: #2ecc71; color: white; }
+
+        /* --- סרגל קטגוריות --- */
+        .category-bar {
             background: white;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            cursor: pointer;
-            border-right: 5px solid;
-            transition: all 0.3s;
-            position: relative;
-        }
-        
-        .task-card:hover {
-            transform: translateX(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-        }
-        
-        .status-todo { border-right-color: #95a5a6; }
-        .status-inprogress { border-right-color: #3498db; }
-        .status-stuck { border-right-color: #e74c3c; }
-        .status-done { 
-            border-right-color: #2ecc71;
-            opacity: 0.7;
-        }
-        
-        .status-done .task-title {
-            text-decoration: line-through;
-        }
-        
-        .task-title {
-            font-weight: 600;
-            font-size: 1rem;
-            margin-bottom: 10px;
-            color: #2c3e50;
-        }
-        
-        .task-meta {
+            padding: 10px 30px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.85rem;
-            color: #7f8c8d;
-            margin-top: 10px;
+            gap: 10px;
+            overflow-x: auto;
+            border-bottom: 1px solid #e1e4e8;
         }
-        
-        .task-date {
+
+        .cat-tab {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.2s;
             display: flex;
             align-items: center;
             gap: 5px;
         }
-        
-        .task-date.overdue {
-            color: #e74c3c;
-            font-weight: 600;
-        }
-        
-        .task-priority {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        
-        .priority-high { background: #ffe5e5; color: #e74c3c; }
-        .priority-medium { background: #fff3e0; color: #f39c12; }
-        .priority-low { background: #e8f5e9; color: #27ae60; }
-        
-        .btn-add-task {
-            margin: 15px;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .cat-tab:hover { background: #e2e6ea; }
+        .cat-tab.active {
+            background: #667eea;
             color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
+            border-color: #667eea;
+        }
+        .delete-cat-btn { margin-right: 5px; opacity: 0.5; }
+        .delete-cat-btn:hover { opacity: 1; color: red; }
+
+        /* --- פילטרים --- */
+        .filter-container {
+            padding: 15px 30px;
             display: flex;
+            gap: 15px;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .search-input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            width: 200px;
+        }
+
+        /* --- לוח עבודה --- */
+        .board {
+            flex-grow: 1;
+            padding: 20px 30px;
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            align-items: flex-start;
+        }
+
+        .column {
+            background: white;
+            min-width: 300px;
+            width: 300px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            max-height: 75vh;
+        }
+
+        .col-header {
+            padding: 15px;
+            border-radius: 12px 12px 0 0;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-list {
+            padding: 10px;
+            overflow-y: auto;
+            flex-grow: 1;
+            min-height: 50px;
+        }
+
+        /* --- כרטיס משימה --- */
+        .task-card {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            border-right: 4px solid #ccc;
+            transition: 0.2s;
+            position: relative;
+        }
+        .task-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+
+        .status-todo { border-right-color: #95a5a6; }
+        .status-inprogress { border-right-color: #3498db; background: #f4faff; }
+        .status-stuck { border-right-color: #e74c3c; background: #fff5f5; }
+        .status-done { border-right-color: #2ecc71; opacity: 0.6; text-decoration: line-through; }
+
+        .meta-tags {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: #777;
         }
         
-        .btn-add-task:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-        
-        .modal-bg {
+        .overdue-alert { color: #e74c3c; font-weight: bold; }
+
+        /* --- מודאלים --- */
+        .modal-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
             z-index: 1000;
             justify-content: center;
             align-items: center;
-            animation: fadeIn 0.3s;
         }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        .modal-content {
+        .modal-box {
             background: white;
             width: 90%;
-            max-width: 550px;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: slideUp 0.3s;
-            max-height: 90vh;
-            overflow-y: auto;
+            max-width: 500px;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
-        
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        .modal-header {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 25px;
-            color: #2c3e50;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .form-row {
-            margin-bottom: 20px;
-        }
-        
-        .form-row label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #2c3e50;
-            font-size: 0.95rem;
-        }
-        
-        .form-row input,
-        .form-row select,
-        .form-row textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-family: inherit;
-            font-size: 0.95rem;
-            transition: all 0.3s;
-        }
-        
-        .form-row input:focus,
-        .form-row select:focus,
-        .form-row textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        
-        .btn-row {
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+
+        .cloud-actions {
             display: flex;
             gap: 10px;
-            margin-top: 25px;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            flex: 2;
-        }
-        
-        .btn-danger {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-            color: white;
-            flex: 1;
-        }
-        
-        .btn-secondary {
-            background: #ecf0f1;
-            color: #2c3e50;
-            flex: 1;
-        }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            z-index: 2000;
-            display: none;
-            animation: slideDown 0.3s;
-        }
-        
-        @keyframes slideDown {
-            from { transform: translate(-50%, -100%); opacity: 0; }
-            to { transform: translate(-50%, 0); opacity: 1; }
-        }
-        
-        .notification.success { border-right: 5px solid #2ecc71; }
-        .notification.error { border-right: 5px solid #e74c3c; }
-        .notification.info { border-right: 5px solid #3498db; }
-        
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #95a5a6;
-        }
-        
-        .empty-state-icon {
-            font-size: 3rem;
-            margin-bottom: 10px;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: white;
-            font-size: 1.2rem;
-        }
-        
-        .sync-status {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: white;
-            padding: 10px 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-            z-index: 1000;
-        }
-        
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #2ecc71;
-            animation: pulse-dot 2s infinite;
-        }
-        
-        .status-dot.syncing {
-            background: #f39c12;
-        }
-        
-        .status-dot.error {
-            background: #e74c3c;
-        }
-        
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .setup-banner {
-            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-            padding: 15px 30px;
-            text-align: center;
-            font-weight: 600;
-            color: #2d3436;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .info-box {
-            background: #e3f2fd;
-            border-right: 4px solid #2196f3;
-            padding: 15px;
+            background: #f8f9fa;
+            padding: 5px 10px;
             border-radius: 8px;
-            margin-bottom: 20px;
+            border: 1px solid #eee;
         }
-        
-        .info-box h4 {
-            color: #1976d2;
-            margin-bottom: 8px;
-        }
-        
-        .info-box p {
-            color: #424242;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-        
-        .code-box {
-            background: #f5f5f5;
-            padding: 10px;
-            border-radius: 5px;
-            font-family: monospace;
-            font-size: 0.85rem;
-            margin-top: 10px;
-            direction: ltr;
-            text-align: left;
-        }
-        
-        @media (max-width: 768px) {
-            .board-container { flex-direction: column; }
-            .column { width: 100%; max-height: none; }
-            .form-grid { grid-template-columns: 1fr; }
-            .stats-container { flex-direction: column; width: 100%; }
-            .stat-box { width: 100%; }
-        }
+
     </style>
 </head>
 <body>
 
-    <div class="loading" id="loading">⏳ טוען נתונים...</div>
-
-    <div id="setupBanner" class="setup-banner" style="display:none;">
-        <span>⚠️ יש להגדיר חיבור ל-Google Sheets</span>
-        <button class="btn btn-settings" onclick="openSettingsModal()" style="padding:8px 16px;">
-            <span>⚙️</span>
-            <span>הגדרות</span>
-        </button>
-    </div>
-
-    <div id="mainApp" style="display:none;">
-        <div class="top-bar">
-            <div class="app-title">
-                <span>🚀</span>
-                <span>מערכת ניהול משימות שיתופית</span>
-            </div>
-            <div class="stats-container">
-                <div class="stat-box success">
-                    <span>✅ הושלמו: </span>
-                    <span id="countDone">0</span>
-                </div>
-                <div class="stat-box warning">
-                    <span>⏳ בתהליך: </span>
-                    <span id="countProgress">0</span>
-                </div>
-                <div class="stat-box danger">
-                    <span>🔥 באיחור: </span>
-                    <span id="countOverdue">0</span>
-                </div>
-            </div>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button class="btn btn-sync" onclick="syncWithSheets()">
-                    <span>🔄</span>
-                    <span>סנכרון</span>
-                </button>
-                <button class="btn btn-settings" onclick="openSettingsModal()">
-                    <span>⚙️</span>
-                    <span>הגדרות</span>
-                </button>
-                <button class="btn btn-category" onclick="openCategoryModal()">
-                    <span>📁</span>
-                    <span>קטגוריה</span>
-                </button>
-                <button class="btn btn-new" onclick="openProjectModal()">
-                    <span>➕</span>
-                    <span>פרויקט</span>
-                </button>
-            </div>
+    <div class="top-bar">
+        <div class="app-logo">🚀 MultiBrawn Tasks</div>
+        
+        <div class="stats-row">
+            <div class="stat-badge bg-green">בוצע: <span id="statDone">0</span></div>
+            <div class="stat-badge bg-blue">בתהליך: <span id="statProgress">0</span></div>
+            <div class="stat-badge bg-red">באיחור: <span id="statOverdue">0</span></div>
         </div>
 
-        <div class="category-bar" id="categoryBar"></div>
-
-        <div class="filter-bar">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="🔍 חיפוש משימות..." oninput="filterTasks()">
-            </div>
-            <button class="btn btn-filter active" onclick="toggleFilter('all')">הכל</button>
-            <button class="btn btn-filter" onclick="toggleFilter('todo')">לביצוע</button>
-            <button class="btn btn-filter" onclick="toggleFilter('inprogress')">בתהליך</button>
-            <button class="btn btn-filter" onclick="toggleFilter('stuck')">תקוע</button>
-            <button class="btn btn-filter" onclick="toggleFilter('done')">הושלם</button>
+        <div class="cloud-actions">
+            <button id="btnSync" class="btn btn-cloud-save" onclick="saveToCloud()">☁️ שמור לענן</button>
+            <button id="btnLoad" class="btn btn-cloud-load" onclick="loadFromCloud()">📥 טען מהענן</button>
         </div>
 
-        <div class="board-container" id="board"></div>
-    </div>
-
-    <div class="sync-status">
-        <div class="status-dot" id="syncDot"></div>
-        <span id="syncText">מצב: לוקלי</span>
-    </div>
-
-    <!-- מודאל הגדרות -->
-    <div id="modalSettings" class="modal-bg" onclick="closeIfClickOutside(event, 'modalSettings')">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <span>⚙️</span>
-                <span>הגדרות Google Sheets</span>
-            </div>
-            
-            <div class="info-box">
-                <h4>📝 הוראות הגדרה מהירה:</h4>
-                <p>
-                    1. צור Google Sheet חדש<br>
-                    2. כלים → Apps Script<br>
-                    3. העתק את הקוד מהקישור למטה<br>
-                    4. פרסם → Deploy → Web App<br>
-                    5. העתק את ה-URL לכאן
-                </p>
-            </div>
-
-            <div class="form-row">
-                <label>Google Sheets Web App URL:</label>
-                <input type="text" id="inpSheetsUrl" placeholder="https://script.google.com/macros/s/...">
-            </div>
-
-            <div class="info-box">
-                <h4>🔗 קוד Apps Script:</h4>
-                <p>
-                    <a href="https://github.com/task-manager-apps-script" target="_blank" style="color:#1976d2; text-decoration:underline;">
-                        לחץ כאן לקוד המוכן
-                    </a>
-                </p>
-                <div class="code-box">
-function doGet() { return ContentService.createTextOutput("OK"); }
-function doPost(e) { /* קוד מלא בגיטהאב */ }
-                </div>
-            </div>
-
-            <div class="btn-row">
-                <button class="btn btn-primary" onclick="saveSettings()">
-                    <span>💾</span>
-                    <span>שמור הגדרות</span>
-                </button>
-                <button class="btn btn-secondary" onclick="testConnection()">
-                    <span>🧪</span>
-                    <span>בדוק חיבור</span>
-                </button>
-                <button class="btn btn-secondary" onclick="closeAllModals()">סגור</button>
-            </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn btn-secondary" onclick="openCategoryModal()">+ קטגוריה</button>
+            <button class="btn btn-primary" onclick="openProjectModal()">+ פרויקט</button>
         </div>
     </div>
 
-    <!-- מודאל קטגוריה -->
-    <div id="modalCategory" class="modal-bg" onclick="closeIfClickOutside(event, 'modalCategory')">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <span>📁</span>
-                <span>קטגוריה חדשה</span>
-            </div>
-            <div class="form-row">
+    <div class="category-bar" id="categoryContainer"></div>
+
+    <div class="filter-container">
+        <input type="text" class="search-input" id="searchInput" placeholder="🔍 חיפוש..." oninput="renderBoard()">
+        <button class="btn btn-secondary" onclick="setFilter('all')">הכל</button>
+        <button class="btn btn-secondary" onclick="setFilter('todo')">לביצוע</button>
+        <button class="btn btn-secondary" onclick="setFilter('inprogress')">בתהליך</button>
+        <button class="btn btn-secondary" onclick="setFilter('stuck')">תקוע</button>
+    </div>
+
+    <div class="board" id="boardContainer"></div>
+
+    <div id="modalCategory" class="modal-overlay">
+        <div class="modal-box">
+            <h3>הוספת קטגוריה</h3>
+            <div class="form-group">
                 <label>שם הקטגוריה:</label>
-                <input type="text" id="inpCatTitle" placeholder="למשל: טכנולוגיה, אבטחה, שיווק...">
+                <input type="text" id="catTitle" class="form-control">
             </div>
-            <div class="form-row">
+            <div class="form-group">
                 <label>אייקון:</label>
-                <input type="text" id="inpCatIcon" placeholder="📱" maxlength="2" value="📁">
+                <input type="text" id="catIcon" class="form-control" value="📂">
             </div>
-            <div class="btn-row">
-                <button class="btn btn-primary" onclick="createCategory()">יצירת קטגוריה</button>
-                <button class="btn btn-secondary" onclick="closeAllModals()">ביטול</button>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="btn btn-primary" style="flex:1" onclick="createCategory()">שמור</button>
+                <button class="btn btn-secondary" style="flex:1" onclick="closeModals()">ביטול</button>
             </div>
         </div>
     </div>
 
-    <!-- מודאל פרויקט -->
-    <div id="modalProject" class="modal-bg" onclick="closeIfClickOutside(event, 'modalProject')">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <span>📂</span>
-                <span>פרויקט חדש</span>
-            </div>
-            <div class="form-row">
+    <div id="modalProject" class="modal-overlay">
+        <div class="modal-box">
+            <h3>פרויקט חדש</h3>
+            <div class="form-group">
                 <label>שם הפרויקט:</label>
-                <input type="text" id="inpProjTitle" placeholder="הזן שם פרויקט...">
+                <input type="text" id="projTitle" class="form-control">
             </div>
-            <div class="form-row">
-                <label>צבע הפרויקט:</label>
-                <input type="color" id="inpProjColor" value="#667eea" style="height:50px; cursor:pointer;">
+            <div class="form-group">
+                <label>צבע כותרת:</label>
+                <input type="color" id="projColor" class="form-control" value="#667eea" style="height:50px;">
             </div>
-            <div class="btn-row">
-                <button class="btn btn-primary" onclick="createProject()">יצירת פרויקט</button>
-                <button class="btn btn-secondary" onclick="closeAllModals()">ביטול</button>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="btn btn-primary" style="flex:1" onclick="createProject()">שמור</button>
+                <button class="btn btn-secondary" style="flex:1" onclick="closeModals()">ביטול</button>
             </div>
         </div>
     </div>
 
-    <!-- מודאל משימה -->
-    <div id="modalTask" class="modal-bg" onclick="closeIfClickOutside(event, 'modalTask')">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <span id="taskModalIcon">✏️</span>
-                <span id="taskModalTitle">עריכת משימה</span>
-            </div>
+    <div id="modalTask" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="taskModalTitle">משימה</h3>
             
-            <div class="form-row">
-                <label>שם המשימה:</label>
-                <input type="text" id="inpTitle" placeholder="מה צריך לעשות?">
+            <div class="form-group">
+                <label>תיאור המשימה:</label>
+                <input type="text" id="taskTitle" class="form-control">
             </div>
 
-            <div class="form-grid">
-                <div class="form-row">
+            <div style="display:flex; gap:10px;">
+                <div class="form-group" style="flex:1">
                     <label>סטטוס:</label>
-                    <select id="inpStatus">
-                        <option value="todo">📝 לביצוע</option>
-                        <option value="inprogress">⚡ בתהליך</option>
-                        <option value="stuck">🚫 תקוע</option>
-                        <option value="done">✅ הושלם</option>
+                    <select id="taskStatus" class="form-control">
+                        <option value="todo">לביצוע</option>
+                        <option value="inprogress">בתהליך</option>
+                        <option value="stuck">תקוע</option>
+                        <option value="done">בוצע</option>
                     </select>
                 </div>
-                <div class="form-row">
-                    <label>עדיפות:</label>
-                    <select id="inpPriority">
-                        <option value="low">🟢 נמוכה</option>
-                        <option value="medium">🟡 בינונית</option>
-                        <option value="high">🔴 גבוהה</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-grid">
-                <div class="form-row">
+                <div class="form-group" style="flex:1">
                     <label>תאריך יעד:</label>
-                    <input type="date" id="inpDate">
-                </div>
-                <div class="form-row">
-                    <label>זמן משוער (שעות):</label>
-                    <input type="number" id="inpHours" placeholder="0" min="0" step="0.5">
+                    <input type="date" id="taskDate" class="form-control">
                 </div>
             </div>
 
-            <div class="form-row">
-                <label>קישור לקובץ/תיק
+            <div class="form-group">
+                <label>קישור (URL):</label>
+                <input type="text" id="taskLink" class="form-control" placeholder="http://...">
+            </div>
+
+            <div class="form-group">
+                <label>הערות:</label>
+                <textarea id="taskNotes" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="btn btn-success" style="flex:2" onclick="saveTask()">שמור משימה</button>
+                <button class="btn btn-danger" style="flex:1" onclick="deleteTask()">מחק</button>
+                <button class="btn btn-secondary" style="flex:1" onclick="closeModals()">סגור</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // --- חיבור לענן (Google Apps Script) ---
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzTVqutP6EmF0AdonI_Ia7fpYsFVyAiApNGFx9sMh2L3FrYTmTOJcRF1Hi1S8Nxn9J3/exec';
+
+    // --- ניהול נתונים (Data) ---
+    const STORAGE_KEY = 'multibrawn_tasks_v3';
+    
+    // נתוני ברירת מחדל
+    const defaultData = {
+        categories: [
+            { id: 'c1', title: 'תשתיות', icon: '🏗️' },
+            { id: 'c2', title: 'אכיפה', icon: '👮‍♂️' }
+        ],
+        projects: {
+            'c1': [ 
+                { id: 'p1', title: 'CAF', color: '#e74c3c' },
+                { id: 'p2', title: 'חניון אחיהוד', color: '#27ae60' }
+            ],
+            'c2': [ 
+                { id: 'p3', title: 'הוד השרון', color: '#3498db' } 
+            ]
+        },
+        tasks: {}
+    };
+
+    // משתנים גלובליים
+    let systemData = { categories: [], projects: {}, tasks: {} };
+    let activeCatId = null;
+    let currentFilter = 'all';
+    
+    // עריכה
+    let editingProjId = null;
+    let editingTaskIndex = null;
+
+    // --- אתחול המערכת ---
+    function init() {
+        // טעינה מלוקאל סטורג'
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            try {
+                systemData = JSON.parse(stored);
+            } catch(e) {
+                systemData = defaultData;
+            }
+        } else {
+            systemData = defaultData;
+        }
+
+        // וידוא תקינות מבנה
+        if(!systemData.categories) systemData.categories = defaultData.categories;
+        if(!systemData.projects) systemData.projects = defaultData.projects;
+        if(!systemData.tasks) systemData.tasks = {};
+
+        activeCatId = systemData.categories.length > 0 ? systemData.categories[0].id : null;
+        
+        renderCategories();
+        renderBoard();
+        updateStats();
+    }
+
+    // --- שמירה מקומית ---
+    function saveDataLocally() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(systemData));
+        updateStats();
+    }
+
+    // --- אינטגרציה לענן (Google Sheets) ---
+    async function saveToCloud() {
+        const btn = document.getElementById('btnSync');
+        const originalText = btn.innerText;
+        btn.innerText = '⏳ שולח...';
+        btn.disabled = true;
+
+        try {
+            // שליחה בתצורת no-cors כדי לעקוף חסימות דפדפן מקומיות
+            await fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', 
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(systemData)
+            });
+            
+            // ב-no-cors אנחנו לא מקבלים תשובה, אז נניח שזה עבר
+            btn.innerText = '✅ נשלח!';
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Cloud Error:', error);
+            btn.innerText = '❌ שגיאה';
+            alert('שגיאה בתקשורת עם גוגל. בדוק חיבור אינטרנט.');
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }, 2000);
+        }
+    }
+
+    async function loadFromCloud() {
+        const btn = document.getElementById('btnLoad');
+        const originalText = btn.innerText;
+        btn.innerText = '⏳ טוען...';
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(GOOGLE_SCRIPT_URL);
+            const data = await response.json();
+
+            if (data && data.categories) {
+                if(confirm('האם לדרוס את הנתונים המקומיים בנתונים מהענן?')) {
+                    systemData = data;
+                    saveDataLocally();
+                    activeCatId = systemData.categories[0]?.id;
+                    renderCategories();
+                    renderBoard();
+                    btn.innerText = '✅ נטען!';
+                } else {
+                    btn.innerText = 'בוטל';
+                }
+            } else {
+                alert('הנתונים שהתקבלו מהענן ריקים או לא תקינים.');
+            }
+        } catch (error) {
+            console.error('Cloud Load Error:', error);
+            alert('לא ניתן למשוך נתונים כרגע.');
+        } finally {
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }, 2000);
+        }
+    }
+
+
+    // --- רינדור קטגוריות ---
+    function renderCategories() {
+        const container = document.getElementById('categoryContainer');
+        container.innerHTML = '';
+
+        systemData.categories.forEach(cat => {
+            const div = document.createElement('div');
+            div.className = `cat-tab ${cat.id === activeCatId ? 'active' : ''}`;
+            div.innerHTML = `
+                <span>${cat.icon} ${cat.title}</span>
+                <span class="delete-cat-btn" onclick="deleteCategory('${cat.id}', event)">×</span>
+            `;
+            div.onclick = () => {
+                activeCatId = cat.id;
+                renderCategories();
+                renderBoard();
+            };
+            container.appendChild(div);
+        });
+    }
+
+    // --- רינדור הלוח ---
+    function renderBoard() {
+        const container = document.getElementById('boardContainer');
+        container.innerHTML = '';
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+        const projectsInCat = systemData.projects[activeCatId] || [];
+
+        if (projectsInCat.length === 0) {
+            container.innerHTML = '<div style="padding:20px; color:#888;">אין פרויקטים בקטגוריה זו. צור חדש!</div>';
+            return;
+        }
+
+        projectsInCat.forEach(proj => {
+            const col = document.createElement('div');
+            col.className = 'column';
+
+            // סינון משימות
+            const allTasks = systemData.tasks[proj.id] || [];
+            const visibleTasks = allTasks.filter(t => {
+                const matchSearch = t.title.toLowerCase().includes(searchTerm);
+                const matchFilter = currentFilter === 'all' || t.status === currentFilter;
+                return matchSearch && matchFilter;
+            });
+
+            // כותרת עמודה
+            col.innerHTML = `
+                <div class="col-header" style="background:${proj.color}">
+                    <span>${proj.title} (${visibleTasks.length})</span>
+                    <span style="cursor:pointer;" onclick="deleteProject('${proj.id}')">🗑️</span>
+                </div>
+                <div class="task-list" id="list-${proj.id}"></div>
+                <button class="btn btn-secondary" style="margin:10px; border:1px dashed #ccc;" onclick="openTaskModal('${proj.id}', -1)">+ הוסף משימה</button>
+            `;
+
+            container.appendChild(col);
+            const listDiv = col.querySelector(`#list-${proj.id}`);
+
+            visibleTasks.forEach(t => {
+                // מציאת האינדקס המקורי (למקרה של סינון)
+                const realIndex = allTasks.indexOf(t);
+                
+                const card = document.createElement('div');
+                card.className = `task-card status-${t.status}`;
+                card.onclick = () => openTaskModal(proj.id, realIndex);
+
+                // בדיקת איחור
+                let dateHtml = '';
+                if(t.date) {
+                    const isOverdue = t.date < new Date().toISOString().split('T')[0] && t.status !== 'done';
+                    dateHtml = `<span class="${isOverdue ? 'overdue-alert' : ''}">📅 ${t.date.split('-').reverse().join('/')}</span>`;
+                }
+
+                let linkHtml = t.link ? `<a href="${t.link}" target="_blank" onclick="event.stopPropagation()">🔗</a>` : '';
+
+                card.innerHTML = `
+                    <div style="font-weight:600">${t.title}</div>
+                    <div class="meta-tags">
+                        ${dateHtml}
+                        ${linkHtml}
+                    </div>
+                `;
+                listDiv.appendChild(card);
+            });
+        });
+    }
+
+    // --- עדכון סטטיסטיקה ---
+    function updateStats() {
+        let done = 0, progress = 0, overdue = 0;
+        const today = new Date().toISOString().split('T')[0];
+
+        Object.values(systemData.tasks).forEach(list => {
+            list.forEach(t => {
+                if(t.status === 'done') done++;
+                if(t.status === 'inprogress') progress++;
+                if(t.date && t.date < today && t.status !== 'done') overdue++;
+            });
+        });
+
+        document.getElementById('statDone').innerText = done;
+        document.getElementById('statProgress').innerText = progress;
+        document.getElementById('statOverdue').innerText = overdue;
+    }
+
+    // --- לוגיקת מודאלים (פתיחה/סגירה/שמירה) ---
+
+    // קטגוריה
+    function openCategoryModal() {
+        document.getElementById('catTitle').value = '';
+        document.getElementById('modalCategory').style.display = 'flex';
+    }
+    function createCategory() {
+        const title = document.getElementById('catTitle').value;
+        const icon = document.getElementById('catIcon').value;
+        if(!title) return;
+        const newId = 'c_' + Date.now();
+        systemData.categories.push({ id: newId, title, icon });
+        systemData.projects[newId] = [];
+        activeCatId = newId;
+        saveDataLocally();
+        renderCategories();
+        renderBoard();
+        closeModals();
+    }
+    function deleteCategory(id, e) {
+        e.stopPropagation();
+        if(confirm('למחוק קטגוריה זו?')) {
+            systemData.categories = systemData.categories.filter(c => c.id !== id);
+            delete systemData.projects[id];
+            if(systemData.categories.length > 0) activeCatId = systemData.categories[0].id;
+            saveDataLocally();
+            renderCategories();
+            renderBoard();
+        }
+    }
+
+    // פרויקט
+    function openProjectModal() {
+        if(!activeCatId) return alert('צור קטגוריה קודם');
+        document.getElementById('projTitle').value = '';
+        document.getElementById('modalProject').style.display = 'flex';
+    }
+    function createProject() {
+        const title = document.getElementById('projTitle').value;
+        const color = document.getElementById('projColor').value;
+        if(!title) return;
+        const newId = 'p_' + Date.now();
+        if(!systemData.projects[activeCatId]) systemData.projects[activeCatId] = [];
+        systemData.projects[activeCatId].push({ id: newId, title, color });
+        saveDataLocally();
+        renderBoard();
+        closeModals();
+    }
+    function deleteProject(id) {
+        if(confirm('למחוק פרויקט זה?')) {
+            systemData.projects[activeCatId] = systemData.projects[activeCatId].filter(p => p.id !== id);
+            delete systemData.tasks[id];
+            saveDataLocally();
+            renderBoard();
+        }
+    }
+
+    // משימה
+    function openTaskModal(projId, index) {
+        editingProjId = projId;
+        editingTaskIndex = index;
+        
+        if (index === -1) {
+            document.getElementById('taskModalTitle').innerText = 'משימה חדשה';
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskStatus').value = 'todo';
+            document.getElementById('taskDate').value = '';
+            document.getElementById('taskLink').value = '';
+            document.getElementById('taskNotes').value = '';
+        } else {
+            const t = systemData.tasks[projId][index];
+            document.getElementById('taskModalTitle').innerText = 'עריכת משימה';
+            document.getElementById('taskTitle').value = t.title;
+            document.getElementById('taskStatus').value = t.status;
+            document.getElementById('taskDate').value = t.date;
+            document.getElementById('taskLink').value = t.link || '';
+            document.getElementById('taskNotes').value = t.notes || '';
+        }
+        document.getElementById('modalTask').style.display = 'flex';
+    }
+
+    function saveTask() {
+        const title = document.getElementById('taskTitle').value;
+        if(!title) return;
+        
+        const taskObj = {
+            title: title,
+            status: document.getElementById('taskStatus').value,
+            date: document.getElementById('taskDate').value,
+            link: document.getElementById('taskLink').value,
+            notes: document.getElementById('taskNotes').value
+        };
+
+        if(!systemData.tasks[editingProjId]) systemData.tasks[editingProjId] = [];
+
+        if (editingTaskIndex === -1) {
+            systemData.tasks[editingProjId].push(taskObj);
+        } else {
+            systemData.tasks[editingProjId][editingTaskIndex] = taskObj;
+        }
+
+        saveDataLocally();
+        renderBoard();
+        closeModals();
+    }
+
+    function deleteTask() {
+        if(editingTaskIndex > -1 && confirm('למחוק משימה?')) {
+            systemData.tasks[editingProjId].splice(editingTaskIndex, 1);
+            saveDataLocally();
+            renderBoard();
+            closeModals();
+        }
+    }
+
+    // עזרים
+    function setFilter(f) {
+        currentFilter = f;
+        renderBoard();
+    }
+    function closeModals() {
+        document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none');
+    }
+
+    // התחלה
+    init();
+
+</script>
+</body>
+</html>
