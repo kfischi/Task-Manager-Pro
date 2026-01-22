@@ -709,30 +709,12 @@
 
     <div class="notification" id="notification"></div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
 <script>
-    // ========== Firebase Configuration ==========
-    const firebaseConfig = {
-        apiKey: "AIzaSyDemoKeyForTaskManager123456789",
-        authDomain: "task-manager-demo.firebaseapp.com",
-        databaseURL: "https://task-manager-demo-default-rtdb.firebaseio.com",
-        projectId: "task-manager-demo",
-        storageBucket: "task-manager-demo.appspot.com",
-        messagingSenderId: "123456789",
-        appId: "1:123456789:web:abcdef123456"
-    };
-
-    // Initialize Firebase
-    let app, database;
-    try {
-        app = firebase.initializeApp(firebaseConfig);
-        database = firebase.database();
-    } catch (error) {
-        console.log('Using LocalStorage fallback mode');
-    }
+    // ========== Storage System (LocalStorage Based) ==========
+    // Firebase configuration removed to prevent deployment issues
+    // System uses localStorage for data persistence
+    
+    let database = null; // No Firebase - using localStorage only
 
     // ========== Global Variables ==========
     const STORAGE_KEY = 'shared_task_system_v1';
@@ -770,36 +752,18 @@
     // ========== Initialize ==========
     async function init() {
         try {
-            if (database) {
-                // Try Firebase first
-                const snapshot = await database.ref('taskSystem').once('value');
-                const firebaseData = snapshot.val();
-                
-                if (firebaseData) {
-                    categories = firebaseData.categories || defaultData.categories;
-                    projects = firebaseData.projects || defaultData.projects;
-                    tasks = firebaseData.tasks || defaultData.tasks;
-                } else {
-                    // Initialize Firebase with default data
-                    await database.ref('taskSystem').set(defaultData);
-                    categories = defaultData.categories;
-                    projects = defaultData.projects;
-                    tasks = defaultData.tasks;
-                }
+            // Using localStorage for data persistence
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                const data = JSON.parse(stored);
+                categories = data.categories || defaultData.categories;
+                projects = data.projects || defaultData.projects;
+                tasks = data.tasks || defaultData.tasks;
             } else {
-                // Fallback to localStorage
-                const stored = localStorage.getItem(STORAGE_KEY);
-                if (stored) {
-                    const data = JSON.parse(stored);
-                    categories = data.categories || defaultData.categories;
-                    projects = data.projects || defaultData.projects;
-                    tasks = data.tasks || defaultData.tasks;
-                } else {
-                    categories = defaultData.categories;
-                    projects = defaultData.projects;
-                    tasks = defaultData.tasks;
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
-                }
+                categories = defaultData.categories;
+                projects = defaultData.projects;
+                tasks = defaultData.tasks;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultData));
             }
             
             activeCategory = categories[0]?.id;
